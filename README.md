@@ -6,8 +6,6 @@
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![Status](https://img.shields.io/badge/IPCAF%20level-Basic%20(335%2F800)-d4932a)
 
-> **Live dashboard:** after enabling GitHub Pages (see [Publishing](#publishing-on-github)), the interactive dashboard is at
-> `https://Favour-Daniel123.github.io/Infection-Prevention-and-Control-Assessment-Analysis-Dashboard-and-Recommendations/`. You can also open `docs/index.html` locally in any browser.
 
 ![Dashboard preview](reports/figures/06_dashboard_preview.png)
 
@@ -24,7 +22,7 @@
 8. [Limitations and assumptions](#8-limitations-and-assumptions)
 9. [The interactive dashboard](#9-the-interactive-dashboard)
 10. [Repository structure and reproducing the analysis](#10-repository-structure-and-reproducing-the-analysis)
-11. [Publishing on GitHub](#publishing-on-github)
+11. [About the Author](#the-author)
 
 ---
 
@@ -331,21 +329,19 @@ To analyse a new assessment, replace the workbook in `data/raw/` (keep the same 
 
 ---
 
-## Publishing on GitHub
+# The Author
 
-```bash
-cd ipcaf-who-assessment-analysis
-git init
-git add .
-git commit -m "IPCAF assessment analysis, dashboard and report"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/ipcaf-who-assessment-analysis.git
-git push -u origin main
-```
+**Afolabi Favour Daniel**, transform healthcare data into intelligence that drives better decisions, stronger systems, and improved outcomes.
 
-Then on GitHub: **Settings, Pages, Source: Deploy from a branch, Branch: `main`, Folder: `/docs`**. After a minute the dashboard is live at `https://Favour-Daniel123.github.io/Infection-Prevention-and-Control-Assessment-Analysis-Dashboard-and-Recommendations/`.
+<img width="3024" height="4032" alt="IMG_1100" src="https://github.com/user-attachments/assets/fbff441c-285f-4618-9bcb-37d6843a226e" />
 
-**Before publishing**, check that the workbook in `data/raw/` contains no information you are not allowed to share. It does not currently name the facility, but IPC assessments can be sensitive. If in doubt, make the repository private or remove the raw file and keep only the processed CSVs.
+My work sits at the intersection of Data Analytics, Healthcare, Business Intelligence, AI Automation, and Data-Driven Decision-Making, turning complex routine, clinical, programme, and operational data into reliable insights that healthcare managers, programme teams, organizations, and policymakers can act on.
+
+I specialize in data quality and validation, performance monitoring, service-utilization analysis, health equity, resource optimization, dashboards, reporting, and analytical storytelling. I combine analytical thinking with technology and automation to reduce repetitive processes, improve data workflows, uncover performance gaps, and make information more accessible for decision-makers.
+
+My goal is beyond producing reports or dashboards. I aim to build smarter, more efficient, data-driven healthcare systems where quality data can move from collection to analysis to intelligence and to action.
+
+I am continuously expanding my capabilities in AI automation, advanced analytics, cybersecurity, and digital health, with a long-term focus on using technology and data to solve real-world healthcare and organizational problems.
 
 ---
 
