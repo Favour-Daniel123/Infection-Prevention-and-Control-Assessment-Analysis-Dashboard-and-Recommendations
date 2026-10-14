@@ -7,7 +7,7 @@
 ![Status](https://img.shields.io/badge/IPCAF%20level-Basic%20(335%2F800)-d4932a)
 
 > **Live dashboard:** after enabling GitHub Pages (see [Publishing](#publishing-on-github)), the interactive dashboard is at
-> `https://Favour-Daniel123.github.io/ipcaf-who-assessment-analysis/`. You can also open `docs/index.html` locally in any browser.
+> `https://Favour-Daniel123.github.io/Infection-Prevention-and-Control-Assessment-Analysis-Dashboard-and-Recommendations/`. You can also open `docs/index.html` locally in any browser.
 
 ![Dashboard preview](reports/figures/06_dashboard_preview.png)
 
@@ -343,7 +343,7 @@ git remote add origin https://github.com/YOUR-USERNAME/ipcaf-who-assessment-anal
 git push -u origin main
 ```
 
-Then on GitHub: **Settings, Pages, Source: Deploy from a branch, Branch: `main`, Folder: `/docs`**. After a minute the dashboard is live at `https://YOUR-USERNAME.github.io/ipcaf-who-assessment-analysis/`. Replace `YOUR-USERNAME` in the two badge/link lines at the top of this README.
+Then on GitHub: **Settings, Pages, Source: Deploy from a branch, Branch: `main`, Folder: `/docs`**. After a minute the dashboard is live at `https://Favour-Daniel123.github.io/Infection-Prevention-and-Control-Assessment-Analysis-Dashboard-and-Recommendations/`.
 
 **Before publishing**, check that the workbook in `data/raw/` contains no information you are not allowed to share. It does not currently name the facility, but IPC assessments can be sensitive. If in doubt, make the repository private or remove the raw file and keep only the processed CSVs.
 
