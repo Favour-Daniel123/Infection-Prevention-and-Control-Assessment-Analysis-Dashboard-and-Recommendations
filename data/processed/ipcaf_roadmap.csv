@@ -1,0 +1,31 @@
+id,phase,action,indicators,points,effort
+A1,1,Define measurable IPC objectives for priority areas,CC1.8,10.0,Low
+A2,1,"Write a monitoring plan with goals, targets and activities",CC6.2,7.5,Low
+A3,1,Report monitoring data at least annually,CC6.6,10.0,Low
+A4,1,Designate surveillance lead and add surveillance to the IPC programme,"CC4.1, CC4.2",10.0,Low
+A5,1,Run a HAI prioritisation exercise for local context,CC4.5,5.0,Low
+A6,1,Involve frontline staff and stakeholders in guideline planning,"CC2.5, CC2.6",17.5,Low
+A7,1,"Feed surveillance results back to frontline, clinical leads and management","CC4.14a, CC4.14b, CC4.14d",7.5,Low
+A8,1,Share audit results with IPC team and frontline staff,"CC6.5a, CC6.5c",5.0,Low
+A9,1,Introduce IPC bundles and checklists,CC5.5,10.0,Low
+A10,1,Add facility management to the IPC committee,CC1.7c,2.5,Low
+A11,1,Install hand-hygiene stations at all points of care,CC8.3,7.5,Medium
+A12,1,Audit waste management practice,CC6.3i,5.0,Low
+A13,2,"Develop guidelines for SSI, CLABSI, HAP, CAUTI, MDR, disinfection, HCW safety, antibiotic stewardship","CC2.2e, CC2.2f, CC2.2g, CC2.2h, CC2.2i, CC2.2j, CC2.2k, CC2.2n",20.0,Medium
+A14,2,Train staff on new/updated guidelines,CC2.7,10.0,Medium
+A15,2,Run regular IPC training for health care workers,CC3.3,15.0,Medium
+A16,2,Run regular IPC training for cleaners and support staff,CC3.4,15.0,Medium
+A17,2,Create link nurse / IPC champion network,CC3.2,10.0,Medium
+A18,2,Train administrators and managers in IPC,CC3.5,5.0,Low
+A19,2,Train surveillance staff; standardise data collection and quality review,"CC4.3, CC4.9, CC4.10",15.0,Medium
+A20,2,"Start surveillance for SSI, device-associated and MDR infections","CC4.6a, CC4.6b, CC4.6d",7.5,Medium
+A21,2,"Audit catheter care, wound dressing, isolation and ward cleaning","CC6.3b, CC6.3c, CC6.3d, CC6.3e",20.0,Medium
+A22,2,Use surveillance data to plan unit-level improvements and review AMR,"CC4.12, CC4.13",10.0,Medium
+A23,2,Introduce daily signed cleaning records,CC8.7,5.0,Low
+A24,2,Allocate a dedicated IPC budget,CC1.9a,5.0,Medium
+A25,3,Appoint a full-time IPC professional,CC1.3,7.5,High
+A26,3,"Assess staffing (WISN), maintain agreed ratios, act on shortfalls","CC7.1, CC7.2, CC7.3",30.0,High
+A27,3,Meet ward design and >1 m bed-spacing standards; respond to over-capacity,"CC7.4, CC7.7, CC7.8",35.0,High
+A28,3,"Secure reliable water, drinking-water stations and wastewater treatment","CC8.1, CC8.2, CC8.14",17.5,High
+A29,3,"Secure continuous power, PPE, supplies and sterile-equipment availability","CC8.5, CC8.10, CC8.16, CC8.17",12.5,High
+A30,3,Make laboratory support and IT for surveillance reliable,"CC1.10, CC4.4",10.0,High

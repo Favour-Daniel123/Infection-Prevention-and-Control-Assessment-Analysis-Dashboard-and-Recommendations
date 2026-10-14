@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IPCAF Facility Assessment Dashboard</title>
+<style>
+:root{
+  --bg:#f6f8fa; --surface:#ffffff; --ink:#1f2a37; --muted:#5b6672; --line:#dfe4ea;
+  --accent:#0f766e; --accent-soft:#d9efec; --green:#1f8a5c; --amber:#b7791f; --red:#c23b4e;
+  --green-bg:#e0f3ea; --amber-bg:#fbefd5; --red-bg:#f9e0e4; --shadow:0 1px 2px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1519; --surface:#172026; --ink:#e6ebef; --muted:#9aa7b2; --line:#2a3640;
+    --accent:#3cc0b3; --accent-soft:#183a38; --green:#4cc58f; --amber:#e3b04b; --red:#ef6f80;
+    --green-bg:#17372b; --amber-bg:#3a2f16; --red-bg:#40202a; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --surface:#172026; --ink:#e6ebef; --muted:#9aa7b2; --line:#2a3640;
+  --accent:#3cc0b3; --accent-soft:#183a38; --green:#4cc58f; --amber:#e3b04b; --red:#ef6f80;
+  --green-bg:#17372b; --amber-bg:#3a2f16; --red-bg:#40202a; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 56px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;max-width:720px}
+button,select,input{font:inherit;color:var(--ink)}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.on{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:26px;font-weight:700;line-height:1.2}
+.kpi .n{font-size:12px;color:var(--muted)}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px}
+nav .btn{border-radius:999px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h2{font-size:16px;margin:0 0 4px}
+.card .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.bar-row{display:grid;grid-template-columns:130px 1fr 92px;gap:8px;align-items:center;padding:5px 6px;border-radius:8px;cursor:pointer}
+.bar-row:hover,.bar-row.sel{background:var(--accent-soft)}
+.bar-row .nm{font-size:13px}
+.track{height:16px;background:var(--line);border-radius:6px;overflow:hidden}
+.fill{height:100%;border-radius:6px}
+.bar-row .val{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.levelbar{position:relative;height:28px;display:flex;margin:26px 0 6px}
+.levelbar div:first-child{border-radius:8px 0 0 8px}
+.levelbar div:nth-child(4){border-radius:0 8px 8px 0}
+.levelbar div{flex:1;font-size:11px;display:flex;align-items:center;justify-content:center;color:#fff}
+.marker{position:absolute;top:-22px;transform:translateX(-50%);font-size:12px;font-weight:700;white-space:nowrap}
+.marker:after{content:"";position:absolute;left:50%;top:18px;width:2px;height:34px;background:var(--ink)}
+.ticks{display:flex;font-size:11px;color:var(--muted)}
+.ticks span{flex:1}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters select,.filters input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.filters input{min-width:220px;flex:1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;user-select:none}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;white-space:nowrap}
+.pill.f{background:var(--green-bg);color:var(--green)}
+.pill.p{background:var(--amber-bg);color:var(--amber)}
+.pill.n{background:var(--red-bg);color:var(--red)}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-right:4px;white-space:nowrap}
+.flag{font-size:11.5px;color:var(--amber)}
+.ans{color:var(--muted);font-size:12.5px}
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.ins{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:12px 14px}
+.ins h3{margin:0 0 4px;font-size:14.5px}
+.ins p{margin:0;font-size:13.5px;color:var(--muted)}
+.ins b{color:var(--ink)}
+.phase{margin-bottom:12px}
+.phase h3{font-size:14px;margin:0 0 6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.act{display:grid;grid-template-columns:22px 1fr auto auto;gap:8px;align-items:start;padding:7px 4px;border-bottom:1px dashed var(--line);font-size:13.5px}
+.act label{cursor:pointer}
+.act .pts{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.act .eff{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.sim{position:sticky;top:0;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.sim .big{font-size:24px;font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none}
+svg text{fill:var(--ink)}
+.foot{margin-top:24px;font-size:12px;color:var(--muted)}
+.empty{padding:18px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>IPCAF Facility Assessment Dashboard</h1>
+      <div class="sub">WHO Infection Prevention and Control Assessment Framework (WHO/HIS/SDS/2018.9). Assessment dated <span id="adate"></span>. 8 core components, 122 indicators. Click any component to filter the indicator explorer.</div>
+    </div>
+    <button class="btn" id="theme" aria-label="Toggle colour theme">Toggle theme</button>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <nav id="tabs" role="tablist">
+    <button class="btn on" data-tab="overview">Overview</button>
+    <button class="btn" data-tab="items">Indicator explorer</button>
+    <button class="btn" data-tab="themes">Cross-cutting themes</button>
+    <button class="btn" data-tab="roadmap">Improvement simulator</button>
+    <button class="btn" data-tab="insights">Key insights</button>
+  </nav>
+
+  <!-- OVERVIEW -->
+  <section id="tab-overview">
+    <div class="card">
+      <h2>Where the facility sits on the IPCAF scale</h2>
+      <p class="hint">Total score out of 800. The marker shows the facility; bands are the WHO IPC levels.</p>
+      <div class="levelbar" id="levelbar"></div>
+      <div class="ticks"><span>0</span><span>200</span><span>400</span><span>600</span><span style="flex:0">800</span></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Score by core component</h2>
+        <p class="hint">% of the 100 points available in each component. Click a row to explore its indicators.</p>
+        <div id="ccbars"></div>
+        <div class="legend" style="margin-top:10px"><span><i style="background:var(--red)"></i>below 35%</span><span><i style="background:var(--amber)"></i>35 to 49%</span><span><i style="background:var(--accent)"></i>50% and above</span></div>
+      </div>
+      <div class="card">
+        <h2>Capability profile</h2>
+        <p class="hint">Radar of the eight components (% achieved).</p>
+        <div id="radar"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Indicator status by component</h2>
+      <p class="hint">Fully met, partially met and not met indicators. 62 of 122 indicators scored zero.</p>
+      <div class="legend"><span><i style="background:var(--green)"></i>Fully met</span><span><i style="background:var(--amber)"></i>Partially met</span><span><i style="background:var(--red)"></i>Not met</span></div>
+      <div id="stack"></div>
+    </div>
+  </section>
+
+  <!-- ITEMS -->
+  <section id="tab-items" class="hidden">
+    <div class="card">
+      <h2>Indicator explorer</h2>
+      <p class="hint">Filter, search and sort all 122 indicators. Sort by "Points lost" to see where the biggest gains are.</p>
+      <div class="filters">
+        <select id="f-cc" aria-label="Core component"></select>
+        <select id="f-status" aria-label="Status">
+          <option value="">All statuses</option><option>Fully met</option><option>Partially met</option><option>Not met</option>
+        </select>
+        <select id="f-theme" aria-label="Theme"></select>
+        <input id="f-q" type="search" placeholder="Search questions or answers" aria-label="Search">
+        <button class="btn" id="f-reset">Reset</button>
+      </div>
+      <div class="small" id="f-count" style="margin-bottom:6px"></div>
+      <div class="tbl-wrap"><table id="tbl"><thead><tr>
+        <th data-k="id">ID</th><th data-k="label">Indicator</th><th data-k="answer">Answer given</th>
+        <th data-k="score" class="num">Score</th><th data-k="gap" class="num">Points lost</th><th data-k="status">Status</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- THEMES -->
+  <section id="tab-themes" class="hidden">
+    <div class="card">
+      <h2>Cross-cutting themes</h2>
+      <p class="hint">Indicators grouped across components to expose patterns that single-component scores hide. Theme membership is an analyst grouping (see the report's methodology). Click a theme to list its indicators.</p>
+      <div id="themebars"></div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="tab-roadmap" class="hidden">
+    <div class="sim">
+      <div class="small">Projected IPCAF score (upper bound: assumes each ticked action fully achieves its indicators)</div>
+      <div><span class="big" id="sim-score"></span> <span class="big" style="font-size:16px;font-weight:600" id="sim-level"></span></div>
+      <div class="levelbar" id="sim-bar" style="margin-top:30px"></div>
+      <div class="filters" style="margin:8px 0 0">
+        <button class="btn" data-preset="0">Clear</button>
+        <button class="btn" data-preset="1">Phase 1</button>
+        <button class="btn" data-preset="2">Phases 1 + 2</button>
+        <button class="btn" data-preset="3">All phases</button>
+        <button class="btn" data-preset="low">Low-effort only</button>
+      </div>
+    </div>
+    <div class="card"><div id="phases"></div>
+      <p class="small">Phases and effort ratings are the analyst's judgement of cost, lead time and dependencies, not a WHO classification. Real gains depend on how well each action is implemented, and partial implementation earns partial credit.</p></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section id="tab-insights" class="hidden">
+    <div class="insights" id="insights"></div>
+  </section>
+
+  <div class="foot">Source workbook: Response--IPCAF_WHO_Assessment_Tool.xlsx. Scoring validated against the workbook's own subtotals. Three unanswered indicators were scored 0 by the tool and are flagged in the explorer.</div>
+</div>
+
+<script>
+const DATA = {"meta":{"assessment_date":"2026-10-12","source":"WHO IPCAF (WHO/HIS/SDS/2018.9)","total":335.0,"max":800,"level":"Basic","levels":[{"lo":0,"hi":200,"name":"Inadequate"},{"lo":201,"hi":400,"name":"Basic"},{"lo":401,"hi":600,"name":"Intermediate"},{"lo":601,"hi":800,"name":"Advanced"}]},"cc":[{"cc":1,"score":60.0,"max":100.0,"items":13,"fully":6,"partial":4,"notmet":3,"lost":40.0,"pct":0.6,"name":"IPC programme","short":"Programme"},{"cc":2,"score":42.5,"max":100.0,"items":21,"fully":9,"partial":0,"notmet":12,"lost":57.5,"pct":0.425,"name":"IPC guidelines","short":"Guidelines"},{"cc":3,"score":40.0,"max":100.0,"items":10,"fully":3,"partial":2,"notmet":5,"lost":60.0,"pct":0.4,"name":"IPC education and training","short":"Training"},{"cc":4,"score":27.5,"max":100.0,"items":24,"fully":5,"partial":0,"notmet":19,"lost":72.5,"pct":0.275,"name":"HAI surveillance","short":"Surveillance"},{"cc":5,"score":50.0,"max":100.0,"items":9,"fully":2,"partial":4,"notmet":3,"lost":50.0,"pct":0.5,"name":"Multimodal strategies","short":"Multimodal"},{"cc":6,"score":40.0,"max":100.0,"items":20,"fully":8,"partial":1,"notmet":11,"lost":60.0,"pct":0.4,"name":"Monitoring/audit and feedback","short":"Monitoring"},{"cc":7,"score":35.0,"max":100.0,"items":8,"fully":2,"partial":1,"notmet":5,"lost":65.0,"pct":0.35,"name":"Workload, staffing and bed occupancy","short":"Staffing/beds"},{"cc":8,"score":40.0,"max":100.0,"items":17,"fully":3,"partial":10,"notmet":4,"lost":60.0,"pct":0.4,"name":"Built environment, materials and equipment","short":"Environment"}],"items":[{"id":"CC1.1","cc":1,"no":"1","question":"Do you have an IPC programme?","label":"Do you have an IPC programme","answer":"Yes, without clearly defined objectives","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.2","cc":1,"no":"2","question":"Is the IPC programme supported by an IPC team comprising of IPC professionals?","label":"Is the IPC programme supported by an IPC team comprising of IPC professionals","answer":"Not a team, only an IPC focal person","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.3","cc":1,"no":"3","question":"Does the IPC team have at least one full-time IPC professional or equivalent (nurse or doctor working 100% in IPC) available?","label":"Does the IPC team have at least one full-time IPC professional or equivalen...","answer":"No, only a part-time IPC professional available","score":2.5,"max":10.0,"gap":7.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC1.4","cc":1,"no":"4","question":"Does the IPC team or focal person have dedicated time for IPC activities?","label":"Does the IPC team or focal person have dedicated time for IPC activities","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.5","cc":1,"no":"5","question":"Does the IPC team include both doctors and nurses?","label":"Does the IPC team include both doctors and nurses","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.6","cc":1,"no":"6","question":"Do you have an IPC committee actively supporting the IPC team?","label":"Do you have an IPC committee actively supporting the IPC team","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.7a","cc":1,"no":"7a","question":"IPC committee includes: Senior facility leadership (e.g. administrative director, CEO, medical director)?","label":"Committee: Senior facility leadership (e.g. administrative director, CEO, medical director)","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.7b","cc":1,"no":"7b","question":"IPC committee includes: Senior clinical staff (e.g. physician, nurse)?","label":"Committee: Senior clinical staff (e.g. physician, nurse)","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.7c","cc":1,"no":"7c","question":"IPC committee includes: Facility management (e.g. biosafety, waste, WASH)?","label":"Committee: Facility management (e.g. biosafety, waste, WASH)","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC1.8","cc":1,"no":"8","question":"Do you have clearly defined IPC objectives (i.e. in specific critical areas)?","label":"Do you have clearly defined IPC objectives (i.e. in specific critical areas)","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC1.9a","cc":1,"no":"9a","question":"Senior leadership commitment: allocated budget specifically for the IPC programme?","label":"Leadership: allocated budget specifically for the IPC programme","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC1.9b","cc":1,"no":"9b","question":"Senior leadership commitment: demonstrable support for IPC objectives/indicators?","label":"Leadership: demonstrable support for IPC objectives/indicators","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC1.10","cc":1,"no":"10","question":"Does your facility have microbiological laboratory support (on or off site) for routine day-to-day use?","label":"Does your facility have microbiological laboratory support (on or off site)...","answer":"Yes, but not delivering results reliably","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.1","cc":2,"no":"1","question":"Does your facility have the expertise (in IPC and/or infectious diseases) for developing or adapting guidelines?","label":"Does your facility have the expertise (in IPC and/or infectious diseases) f...","answer":"Yes","score":7.5,"max":7.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2a","cc":2,"no":"2a","question":"Guidelines available for: Standard precautions?","label":"Guideline: Standard precautions","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2b","cc":2,"no":"2b","question":"Guidelines available for: Hand hygiene?","label":"Guideline: Hand hygiene","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2c","cc":2,"no":"2c","question":"Guidelines available for: Transmission-based precautions?","label":"Guideline: Transmission-based precautions","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2d","cc":2,"no":"2d","question":"Guidelines available for: Outbreak management and preparedness?","label":"Guideline: Outbreak management and preparedness","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2e","cc":2,"no":"2e","question":"Guidelines available for: Prevention of surgical site infection?","label":"Guideline: Prevention of surgical site infection","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC2.2f","cc":2,"no":"2f","question":"Guidelines available for: Prevention of vascular catheter-associated bloodstream infections?","label":"Guideline: Prevention of vascular catheter-associated bloodstream infections","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC2.2g","cc":2,"no":"2g","question":"Guidelines available for: Prevention of hospital-acquired pneumonia (HAP)?","label":"Guideline: Prevention of hospital-acquired pneumonia (HAP)","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC2.2h","cc":2,"no":"2h","question":"Guidelines available for: Prevention of catheter-associated urinary tract infections?","label":"Guideline: Prevention of catheter-associated urinary tract infections","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC2.2i","cc":2,"no":"2i","question":"Guidelines available for: Prevention of transmission of multidrug-resistant (MDR) pathogens?","label":"Guideline: Prevention of transmission of multidrug-resistant (MDR) pathogens","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC2.2j","cc":2,"no":"2j","question":"Guidelines available for: Disinfection and sterilization?","label":"Guideline: Disinfection and sterilization","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC2.2k","cc":2,"no":"2k","question":"Guidelines available for: Health care worker protection and safety?","label":"Guideline: Health care worker protection and safety","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2l","cc":2,"no":"2l","question":"Guidelines available for: Injection safety?","label":"Guideline: Injection safety","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2m","cc":2,"no":"2m","question":"Guidelines available for: Waste management?","label":"Guideline: Waste management","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.2n","cc":2,"no":"2n","question":"Guidelines available for: Antibiotic stewardship?","label":"Guideline: Antibiotic stewardship","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.3","cc":2,"no":"3","question":"Are the guidelines in your facility consistent with national/international guidelines (if they exist)?","label":"Are the guidelines in your facility consistent with national/international ...","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.4","cc":2,"no":"4","question":"Is implementation of the guidelines adapted according to local needs and resources while maintaining key IPC standards?","label":"Is implementation of the guidelines adapted according to local needs and re...","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.5","cc":2,"no":"5","question":"Are frontline health care workers involved in both planning and executing implementation of IPC guidelines (in addition to IPC personnel)?","label":"Are frontline health care workers involved in both planning and executing i...","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement"]},{"id":"CC2.6","cc":2,"no":"6","question":"Are relevant stakeholders involved in the development and adaptation of the IPC guidelines (in addition to IPC personnel)?","label":"Are relevant stakeholders involved in the development and adaptation of the...","answer":"No","score":0.0,"max":7.5,"gap":7.5,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC2.7","cc":2,"no":"7","question":"Do health care workers receive specific training related to new or updated IPC guidelines introduced in the facility?","label":"Do health care workers receive specific training related to new or updated ...","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement"]},{"id":"CC2.8","cc":2,"no":"8","question":"Do you regularly monitor the implementation of at least some of the IPC guidelines in your facility?","label":"Do you regularly monitor the implementation of at least some of the IPC gui...","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC3.1","cc":3,"no":"1","question":"Are there personnel with the IPC expertise (in IPC and/or infectious diseases) to lead IPC training?","label":"Are there personnel with the IPC expertise (in IPC and/or infectious diseas...","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC3.2","cc":3,"no":"2","question":"Are there additional non-IPC personnel with adequate skills to serve as trainers and mentors (e.g. link nurses/doctors, champions)?","label":"Are there additional non-IPC personnel with adequate skills to serve as tra...","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement"]},{"id":"CC3.3","cc":3,"no":"3","question":"How frequently do health care workers receive training regarding IPC in your facility?","label":"How frequently do health care workers receive training regarding IPC in you...","answer":"Never or rarely","score":0.0,"max":15.0,"gap":15.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement"]},{"id":"CC3.4","cc":3,"no":"4","question":"How frequently do cleaners and other personnel directly involved in patient care receive training regarding IPC?","label":"How frequently do cleaners and other personnel directly involved in patient...","answer":"Never or rarely","score":0.0,"max":15.0,"gap":15.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement"]},{"id":"CC3.5","cc":3,"no":"5","question":"Does administrative and managerial staff receive general training regarding IPC in your facility?","label":"Does administrative and managerial staff receive general training regarding...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC3.6","cc":3,"no":"6","question":"How are health care workers and other personnel trained?","label":"How are health care workers and other personnel trained","answer":"Includes additional interactive training sessions (e.g. simulation and/or bedside training)","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC3.7","cc":3,"no":"7","question":"Are there periodic evaluations of the effectiveness of training programmes?","label":"Are there periodic evaluations of the effectiveness of training programmes","answer":"Yes, but not regularly","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC3.8","cc":3,"no":"8","question":"Is IPC training integrated in the clinical practice and training of other specialties?","label":"Is IPC training integrated in the clinical practice and training of other s...","answer":"Yes, in some disciplines","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC3.9","cc":3,"no":"9","question":"Is there specific IPC training for patients or family members to minimize the potential for HAIs?","label":"Is there specific IPC training for patients or family members to minimize t...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement"]},{"id":"CC3.10","cc":3,"no":"10","question":"Is ongoing development/education offered for IPC staff (e.g. regularly attending conferences, courses)?","label":"Is ongoing development/education offered for IPC staff (e.g. regularly atte...","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.1","cc":4,"no":"1","question":"Is surveillance a defined component of your IPC programme?","label":"Is surveillance a defined component of your IPC programme","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC4.2","cc":4,"no":"2","question":"Do you have personnel responsible for surveillance activities?","label":"Do you have personnel responsible for surveillance activities","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC4.3","cc":4,"no":"3","question":"Have the professionals responsible for surveillance activities been trained in basic epidemiology, surveillance and IPC?","label":"Have the professionals responsible for surveillance activities been trained...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.4","cc":4,"no":"4","question":"Do you have informatics/IT support to conduct your surveillance?","label":"Do you have informatics/IT support to conduct your surveillance","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.5","cc":4,"no":"5","question":"Do you go through a prioritization exercise to determine the HAIs to be targeted for surveillance according to local context?","label":"Do you go through a prioritization exercise to determine the HAIs to be tar...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC4.6a","cc":4,"no":"6a","question":"Surveillance conducted for: Surgical site infections?","label":"Surveillance: Surgical site infections","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC4.6b","cc":4,"no":"6b","question":"Surveillance conducted for: Device-associated infections?","label":"Surveillance: Device-associated infections","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC4.6c","cc":4,"no":"6c","question":"Surveillance conducted for: Clinically-defined infections?","label":"Surveillance: Clinically-defined infections","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.6d","cc":4,"no":"6d","question":"Surveillance conducted for: Colonization/infections caused by multidrug-resistant pathogens?","label":"Surveillance: Colonization/infections caused by multidrug-resistant pathogens","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC4.6e","cc":4,"no":"6e","question":"Surveillance conducted for: Local priority epidemic-prone infections?","label":"Surveillance: Local priority epidemic-prone infections","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.6f","cc":4,"no":"6f","question":"Surveillance conducted for: Infections in vulnerable populations?","label":"Surveillance: Infections in vulnerable populations","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.6g","cc":4,"no":"6g","question":"Surveillance conducted for: Infections that may affect health care workers?","label":"Surveillance: Infections that may affect health care workers","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.7","cc":4,"no":"7","question":"Do you regularly evaluate if your surveillance is in line with current needs and priorities of your facility?","label":"Do you regularly evaluate if your surveillance is in line with current need...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC4.8","cc":4,"no":"8","question":"Do you use reliable surveillance case definitions (per international definitions e.g. CDC NHSN/ECDC, or adapted)?","label":"Do you use reliable surveillance case definitions (per international defini...","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.9","cc":4,"no":"9","question":"Do you use standardized data collection methods according to international surveillance protocols (or adapted)?","label":"Do you use standardized data collection methods according to international ...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.10","cc":4,"no":"10","question":"Do you have processes in place to regularly review data quality?","label":"Do you have processes in place to regularly review data quality","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.11","cc":4,"no":"11","question":"Do you have adequate microbiology and laboratory capacity to support surveillance?","label":"Do you have adequate microbiology and laboratory capacity to support survei...","answer":"Yes, can reliably identify pathogens and antimicrobial drug resistance patterns in a timely manner","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.12","cc":4,"no":"12","question":"Are surveillance data used to make tailored unit/facility-based plans for the improvement of IPC practices?","label":"Are surveillance data used to make tailored unit/facility-based plans for t...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC4.13","cc":4,"no":"13","question":"Do you analyze antimicrobial drug resistance on a regular basis?","label":"Do you analyze antimicrobial drug resistance on a regular basis","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC4.14a","cc":4,"no":"14a","question":"Feedback up-to-date surveillance information to: Frontline health care workers?","label":"Surveillance feedback: Frontline health care workers","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement","Data-to-action feedback loop"]},{"id":"CC4.14b","cc":4,"no":"14b","question":"Feedback up-to-date surveillance information to: Clinical leaders/heads of department?","label":"Surveillance feedback: Clinical leaders/heads of department","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC4.14c","cc":4,"no":"14c","question":"Feedback up-to-date surveillance information to: IPC committee?","label":"Surveillance feedback: IPC committee","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC4.14d","cc":4,"no":"14d","question":"Feedback up-to-date surveillance information to: Non-clinical management/administration?","label":"Surveillance feedback: Non-clinical management/administration","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC4.15","cc":4,"no":"15","question":"How do you feedback up-to-date surveillance information (at least annually)?","label":"How do you feedback up-to-date surveillance information (at least annually)","answer":"By presentation and interactive problem-orientated solution finding","score":7.5,"max":7.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC5.1","cc":5,"no":"1","question":"Do you use multimodal strategies to implement IPC interventions?","label":"Do you use multimodal strategies to implement IPC interventions","answer":"Yes","score":15.0,"max":15.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC5.2a","cc":5,"no":"2a","question":"Multimodal element - System change","label":"Multimodal: System change","answer":"Interventions to ensure necessary infrastructure and continuous availability of supplies","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC5.2b","cc":5,"no":"2b","question":"Multimodal element - Education and training","label":"Multimodal: Education and training","answer":"Written information and/or oral instruction and/or e-learning only","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC5.2c","cc":5,"no":"2c","question":"Multimodal element - Monitoring and feedback","label":"Multimodal: Monitoring and feedback","answer":"Element not included in multimodal strategies","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC5.2d","cc":5,"no":"2d","question":"Multimodal element - Communications and reminders","label":"Multimodal: Communications and reminders","answer":"Reminders, posters, or other advocacy/awareness-raising tools","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC5.2e","cc":5,"no":"2e","question":"Multimodal element - Safety climate and culture change","label":"Multimodal: Safety climate and culture change","answer":"Managers/leaders show visible support and act as champions/role models","score":5.0,"max":10.0,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC5.3","cc":5,"no":"3","question":"Is a multidisciplinary team used to implement IPC multimodal strategies?","label":"Is a multidisciplinary team used to implement IPC multimodal strategies","answer":"Yes","score":15.0,"max":15.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC5.4","cc":5,"no":"4","question":"Do you regularly link to colleagues from quality improvement and patient safety to develop/promote IPC multimodal strategies?","label":"Do you regularly link to colleagues from quality improvement and patient sa...","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC5.5","cc":5,"no":"5","question":"Do these strategies include bundles or checklists?","label":"Do these strategies include bundles or checklists","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.1","cc":6,"no":"1","question":"Do you have trained personnel responsible for monitoring/audit of IPC practices and feedback?","label":"Do you have trained personnel responsible for monitoring/audit of IPC pract...","answer":"Yes","score":10.0,"max":10.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.2","cc":6,"no":"2","question":"Do you have a well-defined monitoring plan with clear goals, targets and activities?","label":"Do you have a well-defined monitoring plan with clear goals, targets and ac...","answer":"No","score":0.0,"max":7.5,"gap":7.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Leadership, planning & resourcing"]},{"id":"CC6.3a","cc":6,"no":"3a","question":"Monitor: Hand hygiene compliance (using WHO tool or equivalent)?","label":"Monitor: Hand hygiene compliance (using WHO tool or equivalent)","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.3b","cc":6,"no":"3b","question":"Monitor: Intravascular catheter insertion and/or care?","label":"Monitor: Intravascular catheter insertion and/or care","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC6.3c","cc":6,"no":"3c","question":"Monitor: Wound dressing change?","label":"Monitor: Wound dressing change","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC6.3d","cc":6,"no":"3d","question":"Monitor: Transmission-based precautions and isolation to prevent spread of MDRO?","label":"Monitor: Transmission-based precautions and isolation to prevent spread of MDRO","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Device & procedure-related HAI prevention"]},{"id":"CC6.3e","cc":6,"no":"3e","question":"Monitor: Cleaning of the ward environment?","label":"Monitor: Cleaning of the ward environment","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.3f","cc":6,"no":"3f","question":"Monitor: Disinfection and sterilization of medical equipment/instruments?","label":"Monitor: Disinfection and sterilization of medical equipment/instruments","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.3g","cc":6,"no":"3g","question":"Monitor: Consumption/usage of alcohol-based handrub or soap?","label":"Monitor: Consumption/usage of alcohol-based handrub or soap","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.3h","cc":6,"no":"3h","question":"Monitor: Consumption/usage of antimicrobial agents?","label":"Monitor: Consumption/usage of antimicrobial agents","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.3i","cc":6,"no":"3i","question":"Monitor: Waste management?","label":"Monitor: Waste management","answer":null,"score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":true,"reverse":false,"themes":[]},{"id":"CC6.4","cc":6,"no":"4","question":"How frequently is the WHO Hand Hygiene Self-Assessment Framework Survey undertaken?","label":"How frequently is the WHO Hand Hygiene Self-Assessment Framework Survey und...","answer":"Periodically, but no regular schedule","score":2.5,"max":5.0,"gap":2.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC6.5a","cc":6,"no":"5a","question":"Feedback auditing reports: Yes, within the IPC team?","label":"Audit feedback: within the IPC team","answer":null,"score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":true,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC6.5b","cc":6,"no":"5b","question":"Feedback auditing reports: Yes, to department leaders and managers in areas audited?","label":"Audit feedback: to department leaders and managers in areas audited","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC6.5c","cc":6,"no":"5c","question":"Feedback auditing reports: Yes, to frontline health care workers?","label":"Audit feedback: to frontline health care workers","answer":"No","score":0.0,"max":2.5,"gap":2.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Frontline engagement","Data-to-action feedback loop"]},{"id":"CC6.5d","cc":6,"no":"5d","question":"Feedback auditing reports: Yes, to the IPC committee or quality of care committees?","label":"Audit feedback: to the IPC committee or quality of care committees","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC6.5e","cc":6,"no":"5e","question":"Feedback auditing reports: Yes, to hospital management and senior administration?","label":"Audit feedback: to hospital management and senior administration","answer":"Yes","score":2.5,"max":2.5,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC6.6","cc":6,"no":"6","question":"Is the reporting of monitoring data undertaken regularly (at least annually)?","label":"Is the reporting of monitoring data undertaken regularly (at least annually)","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC6.7","cc":6,"no":"7","question":"Are monitoring and feedback of IPC processes/indicators performed in a \u201cblame-free\u201d institutional culture?","label":"Are monitoring and feedback of IPC processes/indicators performed in a \u201cbla...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Data-to-action feedback loop"]},{"id":"CC6.8","cc":6,"no":"8","question":"Do you assess safety cultural factors in your facility (e.g. HSOPSC, SAQ, PSCHO, HSC)?","label":"Do you assess safety cultural factors in your facility (e.g. HSOPSC, SAQ, P...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC7.1","cc":7,"no":"1","question":"Are appropriate staffing levels assessed according to patient workload using national standards or a standard staffing needs tool (e.g. WHO WISN)?","label":"Are appropriate staffing levels assessed according to patient workload usin...","answer":"No","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Staffing & capacity planning"]},{"id":"CC7.2","cc":7,"no":"2","question":"Is an agreed (WHO or national) ratio of health care workers to patients maintained across your facility?","label":"Is an agreed (WHO or national) ratio of health care workers to patients mai...","answer":"No","score":0.0,"max":15.0,"gap":15.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Staffing & capacity planning"]},{"id":"CC7.3","cc":7,"no":"3","question":"Is a system in place to act on the results of staffing needs assessments when staffing levels are too low?","label":"Is a system in place to act on the results of staffing needs assessments wh...","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Staffing & capacity planning"]},{"id":"CC7.4","cc":7,"no":"4","question":"Is the design of wards in accordance with international standards regarding bed capacity?","label":"Is the design of wards in accordance with international standards regarding...","answer":"No","score":0.0,"max":15.0,"gap":15.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Staffing & capacity planning"]},{"id":"CC7.5","cc":7,"no":"5","question":"Is bed occupancy in your facility kept to one patient per bed?","label":"Is bed occupancy in your facility kept to one patient per bed","answer":"Yes, for all units (including emergency departments and pediatrics)","score":15.0,"max":15.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC7.6","cc":7,"no":"6","question":"Are patients placed in beds standing in the corridor outside of the room (including emergency department)?","label":"Are patients placed in beds standing in the corridor outside of the room (i...","answer":"No","score":15.0,"max":15.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":true,"themes":[]},{"id":"CC7.7","cc":7,"no":"7","question":"Is adequate spacing of > 1 meter between patient beds ensured?","label":"Is adequate spacing of > 1 meter between patient beds ensured","answer":"Yes, but only in certain departments","score":5.0,"max":15.0,"gap":10.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":["Staffing & capacity planning"]},{"id":"CC7.8","cc":7,"no":"8","question":"Is a system in place to assess and respond when adequate bed capacity is exceeded?","label":"Is a system in place to assess and respond when adequate bed capacity is ex...","answer":"No","score":0.0,"max":10.0,"gap":10.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Staffing & capacity planning"]},{"id":"CC8.1","cc":8,"no":"1","question":"Are water services available at all times and of sufficient quantity for all uses?","label":"Are water services available at all times and of sufficient quantity for al...","answer":"Yes, available on average \u2265 5 days per week or every day but not of sufficient quantity","score":2.5,"max":7.5,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":["Water, sanitation & utilities"]},{"id":"CC8.2","cc":8,"no":"2","question":"Is a reliable safe drinking water station present and accessible for staff, patients and families at all times and in all locations?","label":"Is a reliable safe drinking water station present and accessible for staff,...","answer":null,"score":0.0,"max":7.5,"gap":7.5,"status":"Not met","unanswered":true,"reverse":false,"themes":["Water, sanitation & utilities"]},{"id":"CC8.3","cc":8,"no":"3","question":"Are functioning hand hygiene stations available at all points of care?","label":"Are functioning hand hygiene stations available at all points of care","answer":"No, not present","score":0.0,"max":7.5,"gap":7.5,"status":"Not met","unanswered":false,"reverse":false,"themes":["Water, sanitation & utilities"]},{"id":"CC8.4","cc":8,"no":"4","question":"Are \u2265 4 toilets/improved latrines available for outpatient settings, or \u2265 1 per 20 users for inpatient settings?","label":"Are \u2265 4 toilets/improved latrines available for outpatient settings, or \u2265 1...","answer":"Sufficient number present but not all functioning","score":2.5,"max":7.5,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":["Water, sanitation & utilities"]},{"id":"CC8.5","cc":8,"no":"5","question":"Is sufficient energy/power supply available day and night for all uses?","label":"Is sufficient energy/power supply available day and night for all uses","answer":"Yes, sometimes or only in some of the mentioned areas","score":2.5,"max":5.0,"gap":2.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":["Water, sanitation & utilities"]},{"id":"CC8.6","cc":8,"no":"6","question":"Is functioning environmental ventilation (natural or mechanical) available in patient care areas?","label":"Is functioning environmental ventilation (natural or mechanical) available ...","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.7","cc":8,"no":"7","question":"For floors and horizontal work surfaces, is there an accessible record of cleaning, signed by cleaners each day?","label":"For floors and horizontal work surfaces, is there an accessible record of c...","answer":"No record of floors/surfaces being cleaned","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.8","cc":8,"no":"8","question":"Are appropriate and well-maintained materials for cleaning available?","label":"Are appropriate and well-maintained materials for cleaning available","answer":"Yes, available but not well maintained","score":2.5,"max":5.0,"gap":2.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.9","cc":8,"no":"9","question":"Do you have single patient rooms or rooms for cohorting patients with similar pathogens if isolation rooms are insufficient?","label":"Do you have single patient rooms or rooms for cohorting patients with simil...","answer":"No single rooms but rather rooms suitable for patient cohorting available","score":2.5,"max":7.5,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.10","cc":8,"no":"10","question":"Is PPE available at all times and in sufficient quantity for all uses for all health care workers?","label":"Is PPE available at all times and in sufficient quantity for all uses for a...","answer":"Yes, but not continuously available in sufficient quantities","score":2.5,"max":7.5,"gap":5.0,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.11","cc":8,"no":"11","question":"Do you have functional waste collection containers for general, infectious and sharps waste close to all generation points?","label":"Do you have functional waste collection containers for general, infectious ...","answer":"Separate bins present but lids missing/more than 3/4 full, or only two bins, or incomplete coverage","score":2.5,"max":5.0,"gap":2.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.12","cc":8,"no":"12","question":"Is a functional burial pit/fenced waste dump or municipal pick-up available for disposal of non-infectious waste?","label":"Is a functional burial pit/fenced waste dump or municipal pick-up available...","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.13","cc":8,"no":"13","question":"Is an incinerator or alternative treatment technology for infectious and sharp waste present, functional and of sufficient capacity?","label":"Is an incinerator or alternative treatment technology for infectious and sh...","answer":"Yes","score":5.0,"max":5.0,"gap":0.0,"status":"Fully met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.14","cc":8,"no":"14","question":"Is a wastewater treatment system present (on or off site) and functioning reliably?","label":"Is a wastewater treatment system present (on or off site) and functioning r...","answer":"No, not present","score":0.0,"max":5.0,"gap":5.0,"status":"Not met","unanswered":false,"reverse":false,"themes":["Water, sanitation & utilities"]},{"id":"CC8.15","cc":8,"no":"15","question":"Does your facility provide a dedicated decontamination area and/or sterile supply department for decontamination and sterilization of medical devices?","label":"Does your facility provide a dedicated decontamination area and/or sterile ...","answer":"Yes, but not functioning reliably","score":2.5,"max":5.0,"gap":2.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.16","cc":8,"no":"16","question":"Do you reliably have sterile and disinfected equipment ready for use?","label":"Do you reliably have sterile and disinfected equipment ready for use","answer":"Yes, available on average \u2265 five days per week or every day, but not of sufficient quantity","score":2.5,"max":5.0,"gap":2.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]},{"id":"CC8.17","cc":8,"no":"17","question":"Are disposable items available when necessary (e.g. injection safety devices, examination gloves)?","label":"Are disposable items available when necessary (e.g. injection safety device...","answer":"Yes, but only sometimes available","score":2.5,"max":5.0,"gap":2.5,"status":"Partially met","unanswered":false,"reverse":false,"themes":[]}],"themes":[{"theme":"Frontline engagement","indicators":8,"score":0.0,"max":70.0,"pct":0.0,"not_met":8},{"theme":"Data-to-action feedback loop","indicators":15,"score":17.5,"max":70.0,"pct":0.25,"not_met":10},{"theme":"Device & procedure-related HAI prevention","indicators":12,"score":0.0,"max":37.5,"pct":0.0,"not_met":12},{"theme":"Water, sanitation & utilities","indicators":6,"score":7.5,"max":40.0,"pct":0.1875,"not_met":3},{"theme":"Staffing & capacity planning","indicators":6,"score":5.0,"max":70.0,"pct":0.07142857142857142,"not_met":5},{"theme":"Leadership, planning & resourcing","indicators":9,"score":2.5,"max":55.0,"pct":0.045454545454545456,"not_met":8}],"roadmap":[{"id":"A1","phase":1,"action":"Define measurable IPC objectives for priority areas","indicators":["CC1.8"],"points":10.0,"effort":"Low"},{"id":"A2","phase":1,"action":"Write a monitoring plan with goals, targets and activities","indicators":["CC6.2"],"points":7.5,"effort":"Low"},{"id":"A3","phase":1,"action":"Report monitoring data at least annually","indicators":["CC6.6"],"points":10.0,"effort":"Low"},{"id":"A4","phase":1,"action":"Designate surveillance lead and add surveillance to the IPC programme","indicators":["CC4.1","CC4.2"],"points":10.0,"effort":"Low"},{"id":"A5","phase":1,"action":"Run a HAI prioritisation exercise for local context","indicators":["CC4.5"],"points":5.0,"effort":"Low"},{"id":"A6","phase":1,"action":"Involve frontline staff and stakeholders in guideline planning","indicators":["CC2.5","CC2.6"],"points":17.5,"effort":"Low"},{"id":"A7","phase":1,"action":"Feed surveillance results back to frontline, clinical leads and management","indicators":["CC4.14a","CC4.14b","CC4.14d"],"points":7.5,"effort":"Low"},{"id":"A8","phase":1,"action":"Share audit results with IPC team and frontline staff","indicators":["CC6.5a","CC6.5c"],"points":5.0,"effort":"Low"},{"id":"A9","phase":1,"action":"Introduce IPC bundles and checklists","indicators":["CC5.5"],"points":10.0,"effort":"Low"},{"id":"A10","phase":1,"action":"Add facility management to the IPC committee","indicators":["CC1.7c"],"points":2.5,"effort":"Low"},{"id":"A11","phase":1,"action":"Install hand-hygiene stations at all points of care","indicators":["CC8.3"],"points":7.5,"effort":"Medium"},{"id":"A12","phase":1,"action":"Audit waste management practice","indicators":["CC6.3i"],"points":5.0,"effort":"Low"},{"id":"A13","phase":2,"action":"Develop guidelines for SSI, CLABSI, HAP, CAUTI, MDR, disinfection, HCW safety, antibiotic stewardship","indicators":["CC2.2e","CC2.2f","CC2.2g","CC2.2h","CC2.2i","CC2.2j","CC2.2k","CC2.2n"],"points":20.0,"effort":"Medium"},{"id":"A14","phase":2,"action":"Train staff on new/updated guidelines","indicators":["CC2.7"],"points":10.0,"effort":"Medium"},{"id":"A15","phase":2,"action":"Run regular IPC training for health care workers","indicators":["CC3.3"],"points":15.0,"effort":"Medium"},{"id":"A16","phase":2,"action":"Run regular IPC training for cleaners and support staff","indicators":["CC3.4"],"points":15.0,"effort":"Medium"},{"id":"A17","phase":2,"action":"Create link nurse / IPC champion network","indicators":["CC3.2"],"points":10.0,"effort":"Medium"},{"id":"A18","phase":2,"action":"Train administrators and managers in IPC","indicators":["CC3.5"],"points":5.0,"effort":"Low"},{"id":"A19","phase":2,"action":"Train surveillance staff; standardise data collection and quality review","indicators":["CC4.3","CC4.9","CC4.10"],"points":15.0,"effort":"Medium"},{"id":"A20","phase":2,"action":"Start surveillance for SSI, device-associated and MDR infections","indicators":["CC4.6a","CC4.6b","CC4.6d"],"points":7.5,"effort":"Medium"},{"id":"A21","phase":2,"action":"Audit catheter care, wound dressing, isolation and ward cleaning","indicators":["CC6.3b","CC6.3c","CC6.3d","CC6.3e"],"points":20.0,"effort":"Medium"},{"id":"A22","phase":2,"action":"Use surveillance data to plan unit-level improvements and review AMR","indicators":["CC4.12","CC4.13"],"points":10.0,"effort":"Medium"},{"id":"A23","phase":2,"action":"Introduce daily signed cleaning records","indicators":["CC8.7"],"points":5.0,"effort":"Low"},{"id":"A24","phase":2,"action":"Allocate a dedicated IPC budget","indicators":["CC1.9a"],"points":5.0,"effort":"Medium"},{"id":"A25","phase":3,"action":"Appoint a full-time IPC professional","indicators":["CC1.3"],"points":7.5,"effort":"High"},{"id":"A26","phase":3,"action":"Assess staffing (WISN), maintain agreed ratios, act on shortfalls","indicators":["CC7.1","CC7.2","CC7.3"],"points":30.0,"effort":"High"},{"id":"A27","phase":3,"action":"Meet ward design and >1 m bed-spacing standards; respond to over-capacity","indicators":["CC7.4","CC7.7","CC7.8"],"points":35.0,"effort":"High"},{"id":"A28","phase":3,"action":"Secure reliable water, drinking-water stations and wastewater treatment","indicators":["CC8.1","CC8.2","CC8.14"],"points":17.5,"effort":"High"},{"id":"A29","phase":3,"action":"Secure continuous power, PPE, supplies and sterile-equipment availability","indicators":["CC8.5","CC8.10","CC8.16","CC8.17"],"points":12.5,"effort":"High"},{"id":"A30","phase":3,"action":"Make laboratory support and IT for surveillance reliable","indicators":["CC1.10","CC4.4"],"points":10.0,"effort":"High"}]};
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const fmt = n => Number.isInteger(n) ? String(n) : n.toFixed(1);
+const pctc = p => p < .35 ? 'var(--red)' : p < .5 ? 'var(--amber)' : 'var(--accent)';
+const LV = DATA.meta.levels;
+const LVCOL = ['#c23b4e','#d4932a','#2d8f86','#1f8a5c'];
+const levelOf = s => (LV.find(l => s >= l.lo && s <= l.hi) || LV[3]).name;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const total = DATA.meta.total;
+
+$('#adate').textContent = new Date(DATA.meta.assessment_date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+/* ---------- KPIs ---------- */
+const items = DATA.items;
+const nFull = items.filter(i=>i.status==='Fully met').length;
+const nNot = items.filter(i=>i.status==='Not met').length;
+const lost = items.reduce((a,i)=>a+i.gap,0);
+$('#kpis').innerHTML = [
+  ['Total score', `${fmt(total)} / 800`, `${(total/8).toFixed(1)}% achieved`],
+  ['IPC level', DATA.meta.level, 'Range 201 to 400'],
+  ['Gap to Intermediate', `${401-total} pts`, 'Intermediate starts at 401'],
+  ['Indicators fully met', `${nFull} / ${items.length}`, `${Math.round(nFull/items.length*100)}% of indicators`],
+  ['Indicators scoring zero', `${nNot} / ${items.length}`, `${Math.round(nNot/items.length*100)}% of indicators`],
+  ['Points lost', fmt(lost), 'of 800 available']
+].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="n">${k[2]}</div></div>`).join('');
+
+/* ---------- level bar ---------- */
+function levelBar(el, score){
+  el.innerHTML = LV.map((l,i)=>`<div style="background:${LVCOL[i]}">${l.name}</div>`).join('') +
+    `<div class="marker" style="left:${score/8}%;background:none;flex:none;color:var(--ink)">${fmt(score)}</div>`;
+}
+levelBar($('#levelbar'), total);
+
+/* ---------- component bars ---------- */
+let selCC = '';
+function renderCC(){
+  $('#ccbars').innerHTML = DATA.cc.slice().sort((a,b)=>a.cc-b.cc).map(c=>`
+    <div class="bar-row ${selCC==c.cc?'sel':''}" data-cc="${c.cc}" tabindex="0" role="button" aria-label="Explore component ${c.cc}">
+      <div class="nm">${c.cc}. ${esc(c.short)}</div>
+      <div class="track"><div class="fill" style="width:${c.pct*100}%;background:${pctc(c.pct)}"></div></div>
+      <div class="val">${(c.pct*100).toFixed(1)}% <span class="small">(${fmt(c.score)})</span></div>
+    </div>`).join('');
+  $$('#ccbars .bar-row').forEach(r=>{
+    const go=()=>{selCC=r.dataset.cc; $('#f-cc').value=selCC; showTab('items'); applyFilters(); renderCC();};
+    r.onclick=go; r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};
+  });
+}
+renderCC();
+
+/* ---------- radar ---------- */
+(function(){
+  const cs = DATA.cc.slice().sort((a,b)=>a.cc-b.cc), N = cs.length, R = 105, cx = 150, cy = 140;
+  const pt = (i,v)=>{const a=-Math.PI/2+i*2*Math.PI/N;return [cx+Math.cos(a)*R*v, cy+Math.sin(a)*R*v];};
+  let s = `<svg viewBox="-40 0 380 285" role="img" aria-label="Radar chart of core component scores" style="width:100%;max-width:380px;display:block;margin:auto">`;
+  [.25,.5,.75,1].forEach(r=>{s+=`<polygon points="${cs.map((_,i)=>pt(i,r).join(',')).join(' ')}" fill="none" stroke="var(--line)"/>`;});
+  cs.forEach((c,i)=>{const [x,y]=pt(i,1);s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`;
+    const [lx,ly]=pt(i,1.2);s+=`<text x="${lx}" y="${ly+3}" font-size="9.5" text-anchor="${lx<cx-5?'end':lx>cx+5?'start':'middle'}">${esc(c.short)}</text>`;});
+  s+=`<polygon points="${cs.map((c,i)=>pt(i,c.pct).join(',')).join(' ')}" fill="var(--accent)" fill-opacity=".28" stroke="var(--accent)" stroke-width="2"/>`;
+  cs.forEach((c,i)=>{const [x,y]=pt(i,c.pct);s+=`<circle cx="${x}" cy="${y}" r="3.5" fill="var(--accent)"><title>${esc(c.short)}: ${(c.pct*100).toFixed(1)}%</title></circle>`;});
+  s+='</svg>'; $('#radar').innerHTML=s;
+})();
+
+/* ---------- stacked status ---------- */
+$('#stack').innerHTML = DATA.cc.slice().sort((a,b)=>a.cc-b.cc).map(c=>{
+  const t=c.items, seg=(n,col,lab)=>n?`<div title="${lab}: ${n}" style="width:${n/t*100}%;background:${col};color:#fff;font-size:11.5px;text-align:center;line-height:20px">${n}</div>`:'';
+  return `<div class="bar-row" style="cursor:default;grid-template-columns:130px 1fr"><div class="nm">${c.cc}. ${esc(c.short)}</div>
+   <div style="display:flex;border-radius:6px;overflow:hidden;height:20px">${seg(c.fully,'var(--green)','Fully met')}${seg(c.partial,'var(--amber)','Partially met')}${seg(c.notmet,'var(--red)','Not met')}</div></div>`;
+}).join('');
+
+/* ---------- explorer ---------- */
+const ccSel=$('#f-cc'), stSel=$('#f-status'), thSel=$('#f-theme'), q=$('#f-q');
+ccSel.innerHTML='<option value="">All components</option>'+DATA.cc.map(c=>`<option value="${c.cc}">${c.cc}. ${esc(c.name)}</option>`).join('');
+thSel.innerHTML='<option value="">All themes</option>'+DATA.themes.map(t=>`<option>${esc(t.theme)}</option>`).join('');
+let sortK='id', sortDir=1;
+const idKey = id => { const m=id.match(/CC(\d+)\.(\d+)([a-z]?)/); return +m[1]*1000+ +m[2]*10+(m[3]?m[3].charCodeAt(0)-96:0); };
+function applyFilters(){
+  const cc=ccSel.value, st=stSel.value, th=thSel.value, qq=q.value.trim().toLowerCase();
+  let rows = items.filter(i=>(!cc||i.cc==cc)&&(!st||i.status===st)&&(!th||i.themes.includes(th))&&
+     (!qq||(i.question+' '+(i.answer||'')).toLowerCase().includes(qq)));
+  rows.sort((a,b)=>{
+    let x,y;
+    if(sortK==='id'){x=idKey(a.id);y=idKey(b.id);}
+    else {x=a[sortK]??'';y=b[sortK]??'';}
+    if(typeof x==='string'){return x.localeCompare(y)*sortDir;}
+    return (x-y)*sortDir || idKey(a.id)-idKey(b.id);
+  });
+  $('#f-count').textContent=`${rows.length} of ${items.length} indicators, ${fmt(rows.reduce((a,r)=>a+r.gap,0))} points lost in this view`;
+  const cls={'Fully met':'f','Partially met':'p','Not met':'n'};
+  $('#tbl tbody').innerHTML = rows.length ? rows.map(i=>`<tr>
+    <td>${i.id}</td>
+    <td>${esc(i.question)}${i.themes.length?'<div style="margin-top:3px">'+i.themes.map(t=>`<span class="tag">${esc(t)}</span>`).join('')+'</div>':''}
+      ${i.unanswered?'<div class="flag">Left blank in workbook and scored 0</div>':''}${i.reverse?'<div class="small">Reverse-scored: "No" earns full marks</div>':''}</td>
+    <td class="ans">${i.answer?esc(i.answer):'<em>(no answer)</em>'}</td>
+    <td class="num">${fmt(i.score)} / ${fmt(i.max)}</td><td class="num">${fmt(i.gap)}</td>
+    <td><span class="pill ${cls[i.status]}">${i.status}</span></td></tr>`).join('')
+    : '<tr><td colspan="6" class="empty">No indicators match these filters.</td></tr>';
+}
+[ccSel,stSel,thSel].forEach(e=>e.onchange=()=>{selCC=ccSel.value;renderCC();applyFilters();});
+q.oninput=applyFilters;
+$('#f-reset').onclick=()=>{ccSel.value=stSel.value=thSel.value=q.value='';selCC='';renderCC();applyFilters();};
+$$('#tbl th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(sortK===k) sortDir*=-1; else {sortK=k; sortDir=(k==='gap'||k==='score')?-1:1;} applyFilters();});
+applyFilters();
+
+/* ---------- themes ---------- */
+$('#themebars').innerHTML = DATA.themes.slice().sort((a,b)=>a.pct-b.pct).map(t=>`
+  <div class="bar-row" data-th="${esc(t.theme)}" tabindex="0" role="button" style="grid-template-columns:230px 1fr 150px">
+    <div class="nm">${esc(t.theme)}</div>
+    <div class="track"><div class="fill" style="width:${Math.max(t.pct*100,1)}%;background:${pctc(t.pct)}"></div></div>
+    <div class="val">${(t.pct*100).toFixed(1)}% <span class="small">(${fmt(t.score)}/${fmt(t.max)}; ${t.not_met}/${t.indicators} zero)</span></div>
+  </div>`).join('');
+$$('#themebars .bar-row').forEach(r=>{const go=()=>{thSel.value=r.dataset.th;ccSel.value='';stSel.value='';selCC='';renderCC();showTab('items');applyFilters();};
+  r.onclick=go; r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
+
+/* ---------- roadmap simulator ---------- */
+const PH = {1:['Phase 1 (0 to 3 months): governance, planning and quick fixes'],2:['Phase 2 (3 to 6 months): capability building'],3:['Phase 3 (6 to 12+ months): structural investment']};
+const checked = new Set();
+function renderRoad(){
+  $('#phases').innerHTML=[1,2,3].map(p=>{
+    const acts=DATA.roadmap.filter(a=>a.phase===p), pts=acts.reduce((s,a)=>s+a.points,0);
+    return `<div class="phase"><h3><span>${PH[p][0]}</span><span class="small">up to +${fmt(pts)} pts</span></h3>`+
+    acts.map(a=>`<div class="act"><input type="checkbox" id="${a.id}" ${checked.has(a.id)?'checked':''} aria-label="${esc(a.action)}">
+      <label for="${a.id}">${esc(a.action)}<div class="small">${a.indicators.join(', ')}</div></label>
+      <span class="eff">${a.effort} effort</span><span class="pts">+${fmt(a.points)}</span></div>`).join('')+'</div>';
+  }).join('');
+  $$('#phases input').forEach(c=>c.onchange=()=>{c.checked?checked.add(c.id):checked.delete(c.id);updateSim();});
+  updateSim();
+}
+function updateSim(){
+  const add=DATA.roadmap.filter(a=>checked.has(a.id)).reduce((s,a)=>s+a.points,0), s=total+add;
+  $('#sim-score').textContent=`${fmt(s)} / 800`;
+  $('#sim-level').textContent=`${levelOf(s)} (${add?'+'+fmt(add)+' pts':'baseline'})`;
+  levelBar($('#sim-bar'), s);
+}
+$$('[data-preset]').forEach(b=>b.onclick=()=>{
+  checked.clear(); const v=b.dataset.preset;
+  DATA.roadmap.forEach(a=>{ if(v==='low'?a.effort==='Low':(+v>=a.phase&&v!=='0')) checked.add(a.id); });
+  renderRoad();
+});
+renderRoad();
+
+/* ---------- insights ---------- */
+const I = [
+ ['Surveillance is the weakest pillar','HAI surveillance scores <b>27.5%</b>; 19 of 24 indicators are zero. The facility has the laboratory capacity and case definitions, but no surveillance lead, no IT support, no prioritisation and no tracking of SSI, device-associated or MDR infections. Without surveillance the facility cannot see its own infection burden.'],
+ ['Frontline staff are missing from every loop','All 8 frontline-engagement indicators scored <b>0 of 70</b>: staff are not trained regularly (CC3), not involved in guideline planning (CC2), not given surveillance or audit feedback (CC4, CC6) and no link nurses exist.'],
+ ['Zero guidance, zero audit and zero surveillance for device and procedure infections','SSI, CLABSI, HAP, CAUTI, MDR, and disinfection guidance are absent, and so are the related audits and surveillance. All 12 related indicators scored <b>0 of 37.5</b>. The facility has no early-warning system for its highest-risk procedures.'],
+ ['Hand hygiene is monitored, but stations are missing','Hand-hygiene compliance is audited (full marks) but functioning hand-hygiene stations are not present at points of care (0 of 7.5). Compliance data are hard to improve without the means to comply.'],
+ ['Data are collected but rarely used','The feedback-loop theme scores <b>25%</b>. Monitoring data are not reported at least annually, surveillance results do not drive unit plans, and the culture is not "blame-free".'],
+ ['Good quality, low frequency in training','Training method scores full marks (interactive and bedside), as does staff development, but training frequency for clinicians and cleaners is "never or rarely" (0 of 30). The quality is there, the reach is not.'],
+ ['Intermediate is within reach','Closing 66 points moves the facility from Basic to Intermediate. Phase 1 actions, mostly low-cost governance and process fixes, are worth up to <b>97.5 points</b> (projected 432.5).'],
+ ['Structural constraints need investment','Staffing, ward design, bed spacing, water and power together hold large point gaps but are not quick fixes. Expect these to be phased over a year or more and to require budget; no dedicated IPC budget exists today.']
+];
+$('#insights').innerHTML=I.map(x=>`<div class="ins"><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join('');
+
+/* ---------- tabs & theme ---------- */
+function showTab(t){
+  $$('#tabs .btn').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  ['overview','items','themes','roadmap','insights'].forEach(k=>$('#tab-'+k).classList.toggle('hidden',k!==t));
+  window.scrollTo({top:0});
+}
+$$('#tabs .btn').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+$('#theme').onclick=()=>{
+  const root=document.documentElement, dark=matchMedia('(prefers-color-scheme: dark)').matches;
+  const cur=root.dataset.theme||(dark?'dark':'light'); root.dataset.theme=cur==='dark'?'light':'dark';
+};
+</script>
+</body>
+</html>

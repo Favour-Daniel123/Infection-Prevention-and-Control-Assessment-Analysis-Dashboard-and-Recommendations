@@ -1,0 +1,9 @@
+cc,score,max,items,fully,partial,notmet,lost,pct,name,short
+1,60.0,100.0,13,6,4,3,40.0,0.6,IPC programme,Programme
+2,42.5,100.0,21,9,0,12,57.5,0.425,IPC guidelines,Guidelines
+3,40.0,100.0,10,3,2,5,60.0,0.4,IPC education and training,Training
+4,27.5,100.0,24,5,0,19,72.5,0.275,HAI surveillance,Surveillance
+5,50.0,100.0,9,2,4,3,50.0,0.5,Multimodal strategies,Multimodal
+6,40.0,100.0,20,8,1,11,60.0,0.4,Monitoring/audit and feedback,Monitoring
+7,35.0,100.0,8,2,1,5,65.0,0.35,"Workload, staffing and bed occupancy",Staffing/beds
+8,40.0,100.0,17,3,10,4,60.0,0.4,"Built environment, materials and equipment",Environment

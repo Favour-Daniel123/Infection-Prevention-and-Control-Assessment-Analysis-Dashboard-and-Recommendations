@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IPCAF Facility Assessment Dashboard</title>
+<style>
+:root{
+  --bg:#f6f8fa; --surface:#ffffff; --ink:#1f2a37; --muted:#5b6672; --line:#dfe4ea;
+  --accent:#0f766e; --accent-soft:#d9efec; --green:#1f8a5c; --amber:#b7791f; --red:#c23b4e;
+  --green-bg:#e0f3ea; --amber-bg:#fbefd5; --red-bg:#f9e0e4; --shadow:0 1px 2px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1519; --surface:#172026; --ink:#e6ebef; --muted:#9aa7b2; --line:#2a3640;
+    --accent:#3cc0b3; --accent-soft:#183a38; --green:#4cc58f; --amber:#e3b04b; --red:#ef6f80;
+    --green-bg:#17372b; --amber-bg:#3a2f16; --red-bg:#40202a; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --surface:#172026; --ink:#e6ebef; --muted:#9aa7b2; --line:#2a3640;
+  --accent:#3cc0b3; --accent-soft:#183a38; --green:#4cc58f; --amber:#e3b04b; --red:#ef6f80;
+  --green-bg:#17372b; --amber-bg:#3a2f16; --red-bg:#40202a; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 56px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;max-width:720px}
+button,select,input{font:inherit;color:var(--ink)}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.on{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:26px;font-weight:700;line-height:1.2}
+.kpi .n{font-size:12px;color:var(--muted)}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px}
+nav .btn{border-radius:999px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h2{font-size:16px;margin:0 0 4px}
+.card .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.bar-row{display:grid;grid-template-columns:130px 1fr 92px;gap:8px;align-items:center;padding:5px 6px;border-radius:8px;cursor:pointer}
+.bar-row:hover,.bar-row.sel{background:var(--accent-soft)}
+.bar-row .nm{font-size:13px}
+.track{height:16px;background:var(--line);border-radius:6px;overflow:hidden}
+.fill{height:100%;border-radius:6px}
+.bar-row .val{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.levelbar{position:relative;height:28px;display:flex;margin:26px 0 6px}
+.levelbar div:first-child{border-radius:8px 0 0 8px}
+.levelbar div:nth-child(4){border-radius:0 8px 8px 0}
+.levelbar div{flex:1;font-size:11px;display:flex;align-items:center;justify-content:center;color:#fff}
+.marker{position:absolute;top:-22px;transform:translateX(-50%);font-size:12px;font-weight:700;white-space:nowrap}
+.marker:after{content:"";position:absolute;left:50%;top:18px;width:2px;height:34px;background:var(--ink)}
+.ticks{display:flex;font-size:11px;color:var(--muted)}
+.ticks span{flex:1}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters select,.filters input{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.filters input{min-width:220px;flex:1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;user-select:none}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;white-space:nowrap}
+.pill.f{background:var(--green-bg);color:var(--green)}
+.pill.p{background:var(--amber-bg);color:var(--amber)}
+.pill.n{background:var(--red-bg);color:var(--red)}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-right:4px;white-space:nowrap}
+.flag{font-size:11.5px;color:var(--amber)}
+.ans{color:var(--muted);font-size:12.5px}
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.ins{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:12px 14px}
+.ins h3{margin:0 0 4px;font-size:14.5px}
+.ins p{margin:0;font-size:13.5px;color:var(--muted)}
+.ins b{color:var(--ink)}
+.phase{margin-bottom:12px}
+.phase h3{font-size:14px;margin:0 0 6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.act{display:grid;grid-template-columns:22px 1fr auto auto;gap:8px;align-items:start;padding:7px 4px;border-bottom:1px dashed var(--line);font-size:13.5px}
+.act label{cursor:pointer}
+.act .pts{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.act .eff{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.sim{position:sticky;top:0;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.sim .big{font-size:24px;font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none}
+svg text{fill:var(--ink)}
+.foot{margin-top:24px;font-size:12px;color:var(--muted)}
+.empty{padding:18px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>IPCAF Facility Assessment Dashboard</h1>
+      <div class="sub">WHO Infection Prevention and Control Assessment Framework (WHO/HIS/SDS/2018.9). Assessment dated <span id="adate"></span>. 8 core components, 122 indicators. Click any component to filter the indicator explorer.</div>
+    </div>
+    <button class="btn" id="theme" aria-label="Toggle colour theme">Toggle theme</button>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <nav id="tabs" role="tablist">
+    <button class="btn on" data-tab="overview">Overview</button>
+    <button class="btn" data-tab="items">Indicator explorer</button>
+    <button class="btn" data-tab="themes">Cross-cutting themes</button>
+    <button class="btn" data-tab="roadmap">Improvement simulator</button>
+    <button class="btn" data-tab="insights">Key insights</button>
+  </nav>
+
+  <!-- OVERVIEW -->
+  <section id="tab-overview">
+    <div class="card">
+      <h2>Where the facility sits on the IPCAF scale</h2>
+      <p class="hint">Total score out of 800. The marker shows the facility; bands are the WHO IPC levels.</p>
+      <div class="levelbar" id="levelbar"></div>
+      <div class="ticks"><span>0</span><span>200</span><span>400</span><span>600</span><span style="flex:0">800</span></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Score by core component</h2>
+        <p class="hint">% of the 100 points available in each component. Click a row to explore its indicators.</p>
+        <div id="ccbars"></div>
+        <div class="legend" style="margin-top:10px"><span><i style="background:var(--red)"></i>below 35%</span><span><i style="background:var(--amber)"></i>35 to 49%</span><span><i style="background:var(--accent)"></i>50% and above</span></div>
+      </div>
+      <div class="card">
+        <h2>Capability profile</h2>
+        <p class="hint">Radar of the eight components (% achieved).</p>
+        <div id="radar"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Indicator status by component</h2>
+      <p class="hint">Fully met, partially met and not met indicators. 62 of 122 indicators scored zero.</p>
+      <div class="legend"><span><i style="background:var(--green)"></i>Fully met</span><span><i style="background:var(--amber)"></i>Partially met</span><span><i style="background:var(--red)"></i>Not met</span></div>
+      <div id="stack"></div>
+    </div>
+  </section>
+
+  <!-- ITEMS -->
+  <section id="tab-items" class="hidden">
+    <div class="card">
+      <h2>Indicator explorer</h2>
+      <p class="hint">Filter, search and sort all 122 indicators. Sort by "Points lost" to see where the biggest gains are.</p>
+      <div class="filters">
+        <select id="f-cc" aria-label="Core component"></select>
+        <select id="f-status" aria-label="Status">
+          <option value="">All statuses</option><option>Fully met</option><option>Partially met</option><option>Not met</option>
+        </select>
+        <select id="f-theme" aria-label="Theme"></select>
+        <input id="f-q" type="search" placeholder="Search questions or answers" aria-label="Search">
+        <button class="btn" id="f-reset">Reset</button>
+      </div>
+      <div class="small" id="f-count" style="margin-bottom:6px"></div>
+      <div class="tbl-wrap"><table id="tbl"><thead><tr>
+        <th data-k="id">ID</th><th data-k="label">Indicator</th><th data-k="answer">Answer given</th>
+        <th data-k="score" class="num">Score</th><th data-k="gap" class="num">Points lost</th><th data-k="status">Status</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- THEMES -->
+  <section id="tab-themes" class="hidden">
+    <div class="card">
+      <h2>Cross-cutting themes</h2>
+      <p class="hint">Indicators grouped across components to expose patterns that single-component scores hide. Theme membership is an analyst grouping (see the report's methodology). Click a theme to list its indicators.</p>
+      <div id="themebars"></div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="tab-roadmap" class="hidden">
+    <div class="sim">
+      <div class="small">Projected IPCAF score (upper bound: assumes each ticked action fully achieves its indicators)</div>
+      <div><span class="big" id="sim-score"></span> <span class="big" style="font-size:16px;font-weight:600" id="sim-level"></span></div>
+      <div class="levelbar" id="sim-bar" style="margin-top:30px"></div>
+      <div class="filters" style="margin:8px 0 0">
+        <button class="btn" data-preset="0">Clear</button>
+        <button class="btn" data-preset="1">Phase 1</button>
+        <button class="btn" data-preset="2">Phases 1 + 2</button>
+        <button class="btn" data-preset="3">All phases</button>
+        <button class="btn" data-preset="low">Low-effort only</button>
+      </div>
+    </div>
+    <div class="card"><div id="phases"></div>
+      <p class="small">Phases and effort ratings are the analyst's judgement of cost, lead time and dependencies, not a WHO classification. Real gains depend on how well each action is implemented, and partial implementation earns partial credit.</p></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section id="tab-insights" class="hidden">
+    <div class="insights" id="insights"></div>
+  </section>
+
+  <div class="foot">Source workbook: Response--IPCAF_WHO_Assessment_Tool.xlsx. Scoring validated against the workbook's own subtotals. Three unanswered indicators were scored 0 by the tool and are flagged in the explorer.</div>
+</div>
+
+<script>
+const DATA = __DATA__;
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const fmt = n => Number.isInteger(n) ? String(n) : n.toFixed(1);
+const pctc = p => p < .35 ? 'var(--red)' : p < .5 ? 'var(--amber)' : 'var(--accent)';
+const LV = DATA.meta.levels;
+const LVCOL = ['#c23b4e','#d4932a','#2d8f86','#1f8a5c'];
+const levelOf = s => (LV.find(l => s >= l.lo && s <= l.hi) || LV[3]).name;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const total = DATA.meta.total;
+
+$('#adate').textContent = new Date(DATA.meta.assessment_date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+/* ---------- KPIs ---------- */
+const items = DATA.items;
+const nFull = items.filter(i=>i.status==='Fully met').length;
+const nNot = items.filter(i=>i.status==='Not met').length;
+const lost = items.reduce((a,i)=>a+i.gap,0);
+$('#kpis').innerHTML = [
+  ['Total score', `${fmt(total)} / 800`, `${(total/8).toFixed(1)}% achieved`],
+  ['IPC level', DATA.meta.level, 'Range 201 to 400'],
+  ['Gap to Intermediate', `${401-total} pts`, 'Intermediate starts at 401'],
+  ['Indicators fully met', `${nFull} / ${items.length}`, `${Math.round(nFull/items.length*100)}% of indicators`],
+  ['Indicators scoring zero', `${nNot} / ${items.length}`, `${Math.round(nNot/items.length*100)}% of indicators`],
+  ['Points lost', fmt(lost), 'of 800 available']
+].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="n">${k[2]}</div></div>`).join('');
+
+/* ---------- level bar ---------- */
+function levelBar(el, score){
+  el.innerHTML = LV.map((l,i)=>`<div style="background:${LVCOL[i]}">${l.name}</div>`).join('') +
+    `<div class="marker" style="left:${score/8}%;background:none;flex:none;color:var(--ink)">${fmt(score)}</div>`;
+}
+levelBar($('#levelbar'), total);
+
+/* ---------- component bars ---------- */
+let selCC = '';
+function renderCC(){
+  $('#ccbars').innerHTML = DATA.cc.slice().sort((a,b)=>a.cc-b.cc).map(c=>`
+    <div class="bar-row ${selCC==c.cc?'sel':''}" data-cc="${c.cc}" tabindex="0" role="button" aria-label="Explore component ${c.cc}">
+      <div class="nm">${c.cc}. ${esc(c.short)}</div>
+      <div class="track"><div class="fill" style="width:${c.pct*100}%;background:${pctc(c.pct)}"></div></div>
+      <div class="val">${(c.pct*100).toFixed(1)}% <span class="small">(${fmt(c.score)})</span></div>
+    </div>`).join('');
+  $$('#ccbars .bar-row').forEach(r=>{
+    const go=()=>{selCC=r.dataset.cc; $('#f-cc').value=selCC; showTab('items'); applyFilters(); renderCC();};
+    r.onclick=go; r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};
+  });
+}
+renderCC();
+
+/* ---------- radar ---------- */
+(function(){
+  const cs = DATA.cc.slice().sort((a,b)=>a.cc-b.cc), N = cs.length, R = 105, cx = 150, cy = 140;
+  const pt = (i,v)=>{const a=-Math.PI/2+i*2*Math.PI/N;return [cx+Math.cos(a)*R*v, cy+Math.sin(a)*R*v];};
+  let s = `<svg viewBox="-40 0 380 285" role="img" aria-label="Radar chart of core component scores" style="width:100%;max-width:380px;display:block;margin:auto">`;
+  [.25,.5,.75,1].forEach(r=>{s+=`<polygon points="${cs.map((_,i)=>pt(i,r).join(',')).join(' ')}" fill="none" stroke="var(--line)"/>`;});
+  cs.forEach((c,i)=>{const [x,y]=pt(i,1);s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`;
+    const [lx,ly]=pt(i,1.2);s+=`<text x="${lx}" y="${ly+3}" font-size="9.5" text-anchor="${lx<cx-5?'end':lx>cx+5?'start':'middle'}">${esc(c.short)}</text>`;});
+  s+=`<polygon points="${cs.map((c,i)=>pt(i,c.pct).join(',')).join(' ')}" fill="var(--accent)" fill-opacity=".28" stroke="var(--accent)" stroke-width="2"/>`;
+  cs.forEach((c,i)=>{const [x,y]=pt(i,c.pct);s+=`<circle cx="${x}" cy="${y}" r="3.5" fill="var(--accent)"><title>${esc(c.short)}: ${(c.pct*100).toFixed(1)}%</title></circle>`;});
+  s+='</svg>'; $('#radar').innerHTML=s;
+})();
+
+/* ---------- stacked status ---------- */
+$('#stack').innerHTML = DATA.cc.slice().sort((a,b)=>a.cc-b.cc).map(c=>{
+  const t=c.items, seg=(n,col,lab)=>n?`<div title="${lab}: ${n}" style="width:${n/t*100}%;background:${col};color:#fff;font-size:11.5px;text-align:center;line-height:20px">${n}</div>`:'';
+  return `<div class="bar-row" style="cursor:default;grid-template-columns:130px 1fr"><div class="nm">${c.cc}. ${esc(c.short)}</div>
+   <div style="display:flex;border-radius:6px;overflow:hidden;height:20px">${seg(c.fully,'var(--green)','Fully met')}${seg(c.partial,'var(--amber)','Partially met')}${seg(c.notmet,'var(--red)','Not met')}</div></div>`;
+}).join('');
+
+/* ---------- explorer ---------- */
+const ccSel=$('#f-cc'), stSel=$('#f-status'), thSel=$('#f-theme'), q=$('#f-q');
+ccSel.innerHTML='<option value="">All components</option>'+DATA.cc.map(c=>`<option value="${c.cc}">${c.cc}. ${esc(c.name)}</option>`).join('');
+thSel.innerHTML='<option value="">All themes</option>'+DATA.themes.map(t=>`<option>${esc(t.theme)}</option>`).join('');
+let sortK='id', sortDir=1;
+const idKey = id => { const m=id.match(/CC(\d+)\.(\d+)([a-z]?)/); return +m[1]*1000+ +m[2]*10+(m[3]?m[3].charCodeAt(0)-96:0); };
+function applyFilters(){
+  const cc=ccSel.value, st=stSel.value, th=thSel.value, qq=q.value.trim().toLowerCase();
+  let rows = items.filter(i=>(!cc||i.cc==cc)&&(!st||i.status===st)&&(!th||i.themes.includes(th))&&
+     (!qq||(i.question+' '+(i.answer||'')).toLowerCase().includes(qq)));
+  rows.sort((a,b)=>{
+    let x,y;
+    if(sortK==='id'){x=idKey(a.id);y=idKey(b.id);}
+    else {x=a[sortK]??'';y=b[sortK]??'';}
+    if(typeof x==='string'){return x.localeCompare(y)*sortDir;}
+    return (x-y)*sortDir || idKey(a.id)-idKey(b.id);
+  });
+  $('#f-count').textContent=`${rows.length} of ${items.length} indicators, ${fmt(rows.reduce((a,r)=>a+r.gap,0))} points lost in this view`;
+  const cls={'Fully met':'f','Partially met':'p','Not met':'n'};
+  $('#tbl tbody').innerHTML = rows.length ? rows.map(i=>`<tr>
+    <td>${i.id}</td>
+    <td>${esc(i.question)}${i.themes.length?'<div style="margin-top:3px">'+i.themes.map(t=>`<span class="tag">${esc(t)}</span>`).join('')+'</div>':''}
+      ${i.unanswered?'<div class="flag">Left blank in workbook and scored 0</div>':''}${i.reverse?'<div class="small">Reverse-scored: "No" earns full marks</div>':''}</td>
+    <td class="ans">${i.answer?esc(i.answer):'<em>(no answer)</em>'}</td>
+    <td class="num">${fmt(i.score)} / ${fmt(i.max)}</td><td class="num">${fmt(i.gap)}</td>
+    <td><span class="pill ${cls[i.status]}">${i.status}</span></td></tr>`).join('')
+    : '<tr><td colspan="6" class="empty">No indicators match these filters.</td></tr>';
+}
+[ccSel,stSel,thSel].forEach(e=>e.onchange=()=>{selCC=ccSel.value;renderCC();applyFilters();});
+q.oninput=applyFilters;
+$('#f-reset').onclick=()=>{ccSel.value=stSel.value=thSel.value=q.value='';selCC='';renderCC();applyFilters();};
+$$('#tbl th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(sortK===k) sortDir*=-1; else {sortK=k; sortDir=(k==='gap'||k==='score')?-1:1;} applyFilters();});
+applyFilters();
+
+/* ---------- themes ---------- */
+$('#themebars').innerHTML = DATA.themes.slice().sort((a,b)=>a.pct-b.pct).map(t=>`
+  <div class="bar-row" data-th="${esc(t.theme)}" tabindex="0" role="button" style="grid-template-columns:230px 1fr 150px">
+    <div class="nm">${esc(t.theme)}</div>
+    <div class="track"><div class="fill" style="width:${Math.max(t.pct*100,1)}%;background:${pctc(t.pct)}"></div></div>
+    <div class="val">${(t.pct*100).toFixed(1)}% <span class="small">(${fmt(t.score)}/${fmt(t.max)}; ${t.not_met}/${t.indicators} zero)</span></div>
+  </div>`).join('');
+$$('#themebars .bar-row').forEach(r=>{const go=()=>{thSel.value=r.dataset.th;ccSel.value='';stSel.value='';selCC='';renderCC();showTab('items');applyFilters();};
+  r.onclick=go; r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
+
+/* ---------- roadmap simulator ---------- */
+const PH = {1:['Phase 1 (0 to 3 months): governance, planning and quick fixes'],2:['Phase 2 (3 to 6 months): capability building'],3:['Phase 3 (6 to 12+ months): structural investment']};
+const checked = new Set();
+function renderRoad(){
+  $('#phases').innerHTML=[1,2,3].map(p=>{
+    const acts=DATA.roadmap.filter(a=>a.phase===p), pts=acts.reduce((s,a)=>s+a.points,0);
+    return `<div class="phase"><h3><span>${PH[p][0]}</span><span class="small">up to +${fmt(pts)} pts</span></h3>`+
+    acts.map(a=>`<div class="act"><input type="checkbox" id="${a.id}" ${checked.has(a.id)?'checked':''} aria-label="${esc(a.action)}">
+      <label for="${a.id}">${esc(a.action)}<div class="small">${a.indicators.join(', ')}</div></label>
+      <span class="eff">${a.effort} effort</span><span class="pts">+${fmt(a.points)}</span></div>`).join('')+'</div>';
+  }).join('');
+  $$('#phases input').forEach(c=>c.onchange=()=>{c.checked?checked.add(c.id):checked.delete(c.id);updateSim();});
+  updateSim();
+}
+function updateSim(){
+  const add=DATA.roadmap.filter(a=>checked.has(a.id)).reduce((s,a)=>s+a.points,0), s=total+add;
+  $('#sim-score').textContent=`${fmt(s)} / 800`;
+  $('#sim-level').textContent=`${levelOf(s)} (${add?'+'+fmt(add)+' pts':'baseline'})`;
+  levelBar($('#sim-bar'), s);
+}
+$$('[data-preset]').forEach(b=>b.onclick=()=>{
+  checked.clear(); const v=b.dataset.preset;
+  DATA.roadmap.forEach(a=>{ if(v==='low'?a.effort==='Low':(+v>=a.phase&&v!=='0')) checked.add(a.id); });
+  renderRoad();
+});
+renderRoad();
+
+/* ---------- insights ---------- */
+const I = [
+ ['Surveillance is the weakest pillar','HAI surveillance scores <b>27.5%</b>; 19 of 24 indicators are zero. The facility has the laboratory capacity and case definitions, but no surveillance lead, no IT support, no prioritisation and no tracking of SSI, device-associated or MDR infections. Without surveillance the facility cannot see its own infection burden.'],
+ ['Frontline staff are missing from every loop','All 8 frontline-engagement indicators scored <b>0 of 70</b>: staff are not trained regularly (CC3), not involved in guideline planning (CC2), not given surveillance or audit feedback (CC4, CC6) and no link nurses exist.'],
+ ['Zero guidance, zero audit and zero surveillance for device and procedure infections','SSI, CLABSI, HAP, CAUTI, MDR, and disinfection guidance are absent, and so are the related audits and surveillance. All 12 related indicators scored <b>0 of 37.5</b>. The facility has no early-warning system for its highest-risk procedures.'],
+ ['Hand hygiene is monitored, but stations are missing','Hand-hygiene compliance is audited (full marks) but functioning hand-hygiene stations are not present at points of care (0 of 7.5). Compliance data are hard to improve without the means to comply.'],
+ ['Data are collected but rarely used','The feedback-loop theme scores <b>25%</b>. Monitoring data are not reported at least annually, surveillance results do not drive unit plans, and the culture is not "blame-free".'],
+ ['Good quality, low frequency in training','Training method scores full marks (interactive and bedside), as does staff development, but training frequency for clinicians and cleaners is "never or rarely" (0 of 30). The quality is there, the reach is not.'],
+ ['Intermediate is within reach','Closing 66 points moves the facility from Basic to Intermediate. Phase 1 actions, mostly low-cost governance and process fixes, are worth up to <b>97.5 points</b> (projected 432.5).'],
+ ['Structural constraints need investment','Staffing, ward design, bed spacing, water and power together hold large point gaps but are not quick fixes. Expect these to be phased over a year or more and to require budget; no dedicated IPC budget exists today.']
+];
+$('#insights').innerHTML=I.map(x=>`<div class="ins"><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join('');
+
+/* ---------- tabs & theme ---------- */
+function showTab(t){
+  $$('#tabs .btn').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  ['overview','items','themes','roadmap','insights'].forEach(k=>$('#tab-'+k).classList.toggle('hidden',k!==t));
+  window.scrollTo({top:0});
+}
+$$('#tabs .btn').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+$('#theme').onclick=()=>{
+  const root=document.documentElement, dark=matchMedia('(prefers-color-scheme: dark)').matches;
+  const cur=root.dataset.theme||(dark?'dark':'light'); root.dataset.theme=cur==='dark'?'light':'dark';
+};
+</script>
+</body>
+</html>
